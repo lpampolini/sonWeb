@@ -1,0 +1,34 @@
+/*
+	99Lime.com HTML KickStart by Joshua Gatcke
+	kickstart.css
+
+	Don't edit the file if you want HTML KickStart to be upgradeable.
+	Instead, copy any CSS selectors you want to modify to your style.css file.
+
+	// Colors
+	blue: #4D99E0;
+*/
+/*---------------------------------
+	IMPORTS
+-----------------------------------*/
+@import url(kickstart-buttons.css);
+@import url(kickstart-forms.css);
+@import url(kickstart-menus.css);
+@import url(kickstart-grid.css);
+
+
+.vertical{
+    font-family: "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif;
+} 
+
+.submitButton{
+    vertical-align: bottom;
+    text-align: center;
+    margin-top: 50px;
+    margin-left: 315px;
+}
+
+.normaltButton{
+    vertical-align: top;
+    float: left;
+}
