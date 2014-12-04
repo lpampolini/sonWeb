@@ -177,6 +177,11 @@ input.add{
     //padding: 2px 8px;
 }
 
+input.smallerDate{
+    width: 100;
+    font-family: "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif;
+}
+
 input.general{
     width: 400;
 }
@@ -348,3 +353,12 @@ clear:both;
 	.notice a[class^='icon-remove'],
 	.notice a[class^='icon-remove']:active,
 	.notice a[class^='icon-remove']:visited{font-size:12px;position:absolute;top:5px;right:5px;left:auto;color:inherit;margin-top:0;left:auto;}
+        
+        
+/*---------------------------------
+	MY STYLES
+-----------------------------------*/
+
+.topSearch{
+    margin-top: 12px;
+}

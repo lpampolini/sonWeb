@@ -4,6 +4,8 @@ include_once './database/connection.php';
 include_once './actions/functions.php';
 include_once './calendar/';
 
+session_start();
+
 $dbConnection = new connection();
 $dbConnection->newConnection();
 
@@ -299,16 +301,29 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
     
     $(document).ready(function(){
         
+        // Check user type
+        var userTypeSession = '<?php echo $_SESSION["userType"]; ?>';
+        
         // Add calendar icon
         var image = $("<img>");
         image.attr("src", "images/calendar.png");
         image.attr("onclick", "displayCalendar(document.effortForm.dateEffort,'yyyy-mm-dd',this)")
-        $("#EDatecalendar").append(image);
+        
+  //      if(userTypeSession==='fisher')
+//            image.attr("style","visibility:hidden");
+        if(userTypeSession!=='fisher')
+            $("#EDatecalendar").append(image);
         
         // Set add harvest onclick function
         $('#addHarvest').click(addHarvest);
         updateEffortNumber();
         //retrieveData(i);
+        
+        if(userTypeSession==='fisher'){
+            $("#effortForm :input").attr("disabled", true);
+            $("#effortForm :select").attr("disabled", true);
+            
+        }
         
     });
     </script>
@@ -546,7 +561,9 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
                         echo '</select>';
                         ?>
                         
-                        <button type="submit" class="submitButton">Submit</button>
+                        <?php if($_SESSION['userType']!=='fisher'){ ?>
+                            <button type="submit" class="submitButton">Submit</button>
+                        <?php } ?>
                     </div>
                     
                     <div class="col_12">
@@ -565,7 +582,11 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
                             </td>
                             
                             <td width="20" style="vertical-align: top">
-                                <a href="#"><img id="addHarvest" src="images/add129.png" height="31px" width="30px"></a>
+                                <?php if($_SESSION['userType']==='fisher'){?>
+                                    <img id="addHarvestHidden" src="images/addIcon_disabled.png" height="31px" width="30px">    
+                                <?php }else{ ?>
+                                    <a href="#"><img id="addHarvest" src="images/addIcon.png" height="31px" width="30px"></a>    
+                                <?php } ?>
                             </td>
                         </tr>
                         
@@ -699,7 +720,15 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
                             // Delete col
                             echo '<div class="col_1">';
                             echo '<label>&nbsp</label>';
-                            echo '<a href="actions/deleteHarvest.php?cod='.$recordHarvest["Id"].'"><img src="images/delete.png" height="25px" width="25px" /></a>';
+                            
+                            echo '<a href="actions/deleteHarvest.php?cod='.$recordHarvest["Id"].'"';
+                            
+                            if($_SESSION['userType']==='fisher')
+                                echo 'style="visibility:hidden"';
+                            
+                            echo '>';
+                            echo '<img src="images/delete.png" height="25px" width="25px" /></a>';
+                            
                             echo '</div>';
                             echo '<div class="col_3"></div>';
                             echo '</div>';

@@ -14,13 +14,30 @@ $pass = $_POST['password'];
 $salt = generateSalt($pass);
 
 // Retrieve the Salt searching by User name
-$sqlLogin = "select Salt from Users where Username ='".$mail."'";
+$sqlLogin = "select u.*,ut.Type from Users as u"
+        . " INNER JOIN UserTypes as ut"
+        . " ON u.UserType=ut.Id"
+        . " WHERE Username ='".$mail."'";
 $result_search = $dbConnection->execSql($sqlLogin);
 $recordset = mysql_fetch_assoc($result_search);
 
 If($result_search){
     if($salt == $recordset["Salt"]){
-        $location = "startSession.php";
+        
+        // Start new session
+        session_start();
+        //Start session Id
+        $_SESSION['sessionUser'] = session_id();
+        //Define user type
+        $_SESSION['userType'] = $recordset['Type'];
+        // Define the user Id
+        $_SESSION['userId'] = $recordset['Id'];
+        
+        include './validateSession.php';
+        
+        $location = "../effortList.php";
+        
+        
     }else{
         $location = "../index.php?msg=e";
     } 

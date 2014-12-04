@@ -4,6 +4,10 @@ include_once 'database/connection.php';
 $dbConnection = new connection();
 $dbConnection->newConnection();
 
+session_start();
+echo 'userType = '.$_SESSION['userType'].'<br/>';
+echo 'userID = '.$_SESSION['userId'];
+
 // Pags module
 if(isset($_GET['limitOfRows']))
   $pag_views = $_GET['limitOfRows'];
@@ -28,6 +32,13 @@ $sqlList = "SELECT e.*, u.FirstName, u.LastName, d.Name as effortDuration FROM E
         . " INNER JOIN Durations as d"
         . " ON e.Duration=d.Id";
 
+if ($_SESSION['userType']=='fisher'){
+  if(isset($cond) and $cond!='')
+    $cond.= " and u.Id =".$_SESSION['userId'];
+  else
+    $cond.= " where u.Id =".$_SESSION['userId'];
+}
+
 if (isset($_GET['sFisher']) and $_GET['sFisher']!="") {
   if(isset($cond) and $cond!='')
     $cond.= " and Fisherman ='".$_GET['sFisher']."'";
@@ -35,11 +46,40 @@ if (isset($_GET['sFisher']) and $_GET['sFisher']!="") {
         $cond.= " where Fisherman ='".$_GET['sFisher']."'";
 }
 
-if (isset($_GET['sDate']) and trim($_GET['sDate']!="")) {
+if (isset($_GET['sStrDate']) and trim($_GET['sStrDate']!="")) {
   if(isset($cond) and $cond!='')
-    $cond.= " and EDate='".$_GET['sDate']."'";
+    $cond.= " and EDate >= '".$_GET['sStrDate']."'";
       else
-        $cond.= " where EDate='".$_GET['sDate']."'";
+        $cond.= " where EDate >= '".$_GET['sStrDate']."'";
+}
+
+if (isset($_GET['sEndDate']) and trim($_GET['sEndDate']!="")) {
+  if(isset($cond) and $cond!='')
+    $cond.= " and EDate <= '".$_GET['sEndDate']."'";
+      else
+        $cond.= " where EDate <= '".$_GET['sEndDate']."'";
+}
+
+if (isset($_GET['sEffortNum']) and trim($_GET['sEffortNum']!="")) {
+    
+    /* 
+     * Add necessary zeros to the left of the number
+     * e.g. If the user type 1, add extra zeros to the left in order to have
+     * 00001, which is the pattern used for Effort# inside the database.
+    */
+    $size = strlen($_GET['sEffortNum']);
+    $nZeros = (5-$size);
+    $sEffortNum = $_GET['sEffortNum'];
+    
+    for($i = 0; $i < $nZeros; $i++) {
+        $sEffortNum = "0".$sEffortNum;
+    }
+            
+    if(isset($cond) and $cond!='')
+        $cond.= " and SUBSTR(EffortNumber,10,5) ='".$sEffortNum."'";
+    else
+        $cond.= " where SUBSTR(EffortNumber,10,5) ='".$sEffortNum."'";
+
 }
 
 if (isset($_GET['sDuration']) and trim($_GET['sDuration']!="")) {
@@ -136,7 +176,9 @@ function reloadList(){
 }
 
 function clearSearch(){
-    document.getElementById('sDate').value = '';
+    document.getElementById('sStrDate').value = '';
+    document.getElementById('sEndDate').value = '';
+    document.getElementById('sEffortNum').value = '';
     document.getElementById('sFisher').getElementsByTagName('option')[0].selected = 'selected';
     document.getElementById('sDuration').getElementsByTagName('option')[0].selected = 'selected';
     document.fm.submit();
@@ -183,11 +225,15 @@ function clearSearch(){
 
         <tr bgcolor="#F5F5F5">
             <td colspan="2">
-                <div class="col_4" style="margin-top: 12px; margin-left: 140px;">
+                <div class="col_2" style="margin-top: 12px;">
 
                     <label for=“sFisher” class="tableText">Fisher</label>
-                    <select id='sFisher' class='smaller' name='sFisher' onchange='reloadPage()'>
+                    <select id='sFisher' class='smaller' name='sFisher' onchange='reloadPage()'
                     <?php
+                    if($_SESSION['userType']=='fisher' ){
+                        echo "disabled='disabled'";
+                    }
+                    echo '>';
                         echo "<option value=''> Select fisher </option>";
 
                         while($recordFisherman = mysql_fetch_assoc($resultFisherman)){
@@ -197,6 +243,10 @@ function clearSearch(){
                             if($_GET['sFisher']==$recordFisherman["Id"]){
                                 echo "selected='selected'";
                             }
+                            
+                            if($_SESSION['userId']==$recordFisherman["Id"] && $_SESSION['userType']=='fisher' ){
+                                echo "selected='selected'";
+                            }
 
                             echo ">".$recordFisherman["Username"]."</option>";
 
@@ -204,10 +254,22 @@ function clearSearch(){
                     ?>
                     </select>
                 </div>
+                
+                <div class="col_3" style="margin-top: 12px;">
+                    <label for=“sEffortNum” class="tableText">Effort Number</label>
+                    <input type="text" name="sEffortNum" id="sEffortNum" value="<?php echo $_GET['sEffortNum']; ?>"/>
+                    <a href="#"><img src="images/searchIcon.png" height="20" width="20" style="float: next" onclick="reloadPage()"></a>
+                </div>
 
-                <div class="col_4" style="margin-top: 12px;">
-                    <label for=“date” class="tableText">Date</label>
-                    <input type="date" class="smaller" name="sDate" id="sDate" value="<?php echo $_GET['sDate']; ?>"/>
+                <div class="col_2" style="margin-top: 12px;">
+                    <label for=“sStrDate” class="tableText">Start Date</label>
+                    <input type="date" style="width: 105px;" name="sStrDate" id="sStrDate" value="<?php echo $_GET['sStrDate']; ?>"/>
+                    <a href="#"><img src="images/searchIcon.png" height="20" width="20" style="float: next" onclick="reloadPage()"></a>
+                </div>
+                
+                <div class="col_2" style="margin-top: 12px;">
+                    <label for=“sEndDate” class="tableText">End Date</label>
+                    <input type="date" style="width: 105px;" name="sEndDate" id="sEndDate" value="<?php echo $_GET['sEndDate']; ?>"/>
                     <a href="#"><img src="images/searchIcon.png" height="20" width="20" style="float: next" onclick="reloadPage()"></a>
                 </div>
 
@@ -262,29 +324,29 @@ function clearSearch(){
                                 echo '<td>&nbsp;'.$recordset["FirstName"].' '.$recordset["LastName"].'</td>';
                                 echo '<td align="center">&nbsp;'.$recordset["EDate"].'</td>';
                                 echo '<td align="center">&nbsp;'.$recordset["effortDuration"].'&nbsp;hs </td>';
-                                echo '<td align="center" width="50"><a href="./harvestList.php?eff='.$recordset["Id"].'"><img src="images/harvestIcon.png" height="25px" width="30px" /></a> &nbsp;</td>'
-                                     . '<td align="center" width="50"><a href="./actions/deleteEffort.php?cod='.$recordset["Id"].'"><img src="images/delete.png" height="25px" width="25px" /></a></td>';
+                                echo '<td align="center" width="50"><a href="./harvestList.php?sEffortNum='.$recordset["Id"].'"><img src="images/harvestIcon.png" height="25px" width="30px" /></a> &nbsp;</td>';
+                                    if($_SESSION['userType']=='fisher') 
+                                        echo '<td align="center" width="50"><img src="images/delete_disabled.png" height="25px" width="25px" /></td>';
+                                    else    
+                                        echo '<td align="center" width="50"><a href="./actions/deleteEffort.php?cod='.$recordset["Id"].'"><img src="images/delete.png" height="25px" width="25px" /></a></td>';
                             echo '<tr/>';
 
                             $lcor = !$lcor;
                         }
-                        //echo '</table>';
+                        echo '</table>';
                     } else {
-                        echo '<br><br><br><div align="center"><font color="#678FC2" face="Tahoma, Arial, Helvetica, sans-serif" size="3">No register was found.</font></div><br><br><br>';
+                        echo '</table><br><br><br><div align="center"><font color="#678FC2" face="Tahoma, Arial, Helvetica, sans-serif" size="3">No register was found.</font></div><br><br><br>';
                     }
-
-                    ?>
-                </table>
-            </td>
-        </tr>
-
+                    
+            echo '</td>';
+        echo '</tr>';
+                    
+        ?>
+        
         <tr>
             <td>
                 <p></p>
                 <input type="hidden" id="dsYearMonth" name="dsYearMonth" value="<?php echo $_GET["dsYearMonth"]; ?>">
-            </td>
-        </tr>
-            
             </td>
         </tr>
         
@@ -319,8 +381,12 @@ function clearSearch(){
 		    echo '<a href=?page='.$volta;
 			if($_GET['sFisher']<>'')
 			  echo '&sFisher='.str_replace(' ','+',$_GET['sFisher']);
-			if($_GET['sDate']<>'')
-			  echo '&sDate='.$_GET['sDate'];
+			if($_GET['sStrDate']<>'')
+			  echo '&sStrDate='.$_GET['sStrDate'];
+			if($_GET['sEndDate']<>'')
+			  echo '&sEndDate='.$_GET['sEndDate'];
+			if($_GET['sEffortNum']<>'')
+			  echo '&sEffortNum='.$_GET['sEffortNum'];
 			if($_GET['sDuration']<>'')
 			  echo '&sDuration='.$_GET['sDuration'];
                         if(isset($_GET['limitOfRows']))
@@ -340,8 +406,12 @@ function clearSearch(){
 		    echo '<a href=?page='.$proxima;
 			if($_GET['sFisher']<>'')
 			  echo '&sFisher='.str_replace(' ','+',$_GET['sFisher']);
-			if($_GET['sDate']<>'')
-			  echo '&sDate='.$_GET['sDate'];
+			if($_GET['sStrDate']<>'')
+			  echo '&sStrDate='.$_GET['sStrDate'];
+			if($_GET['sEndDate']<>'')
+			  echo '&sEndDate='.$_GET['sEndDate'];
+                        if($_GET['sEffortNum']<>'')
+			  echo '&sEffortNum='.$_GET['sEffortNum'];
 			if($_GET['sDuration']<>'')
 			  echo '&sDuration='.$_GET['sDuration'];
                         if(isset($_GET['limitOfRows']))
@@ -382,6 +452,7 @@ function clearSearch(){
             </td>
         </tr>
         
+        <input type="submit" style="visibility: hidden;">
     </table>
 </form>
 
