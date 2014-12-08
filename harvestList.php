@@ -2,6 +2,7 @@
 
 include_once 'database/connection.php';
 
+session_start();
 $dbConnection = new connection();
 $dbConnection->newConnection();
 
@@ -31,6 +32,13 @@ $sqlList = "SELECT h.*, h.Id as harvestCode, e.EDate, e.EffortNumber, e.Fisherma
         . " ON h.Form = w.Id"
         . " INNER JOIN Species as s"
         . " ON h.Specie = s.Id";
+
+if ($_SESSION['userType']=='fisher'){
+  if(isset($cond) and $cond!='')
+    $cond.= " and u.Id =".$_SESSION['userId'];
+  else
+    $cond.= " where u.Id =".$_SESSION['userId'];
+}
 
 if(isset($_GET["sEffortNum"]) and $_GET["sEffortNum"] != ""){
     if(isset($cond) and $cond!='')
@@ -121,8 +129,8 @@ function clearSearch(){
     <?php
     // Set the number of pages by dividing the number of total records by the number of records per page (25/50/70)
     $pages = $nlinhas[0] / $pag_views;
-    $volta   = $page-1;	  
-    $proxima = $page+1;
+    $previous   = $page-1;	  
+    $next = $page+1;
     ?>
     <table border="0" width="1900" >
         
@@ -176,11 +184,11 @@ function clearSearch(){
                     <tr height="25" bgcolor="#D8D8D8" class="tableTitle">
                       <td width="307"><div align="left">&nbsp;Effort</div></td>
                       <td width="307"><div align="left">&nbsp;Date</div></td>
-                      <td width="307"><div align="left">&nbsp;Fisherman</div></td>
+                      <td width="307"><div align="left">&nbsp;Fisher</div></td>
                       <td width="307"><div align="left">&nbsp;Form</div></td>
                       <td width="307"><div align="left">&nbsp;Weight</div></td>
                       <td width="307"><div align="left">&nbsp;Specie</div></td>
-                      <td width="100" colspan="2"><div align="center">&nbsp;Options</div></td>
+                      <td width="100"><div align="center">&nbsp;Options</div></td>
                     </tr> 
 
                     <?php
@@ -202,8 +210,10 @@ function clearSearch(){
                                 echo '<td align="center">&nbsp;'.$recordset["FormName"].'</td>';
                                 echo '<td align="center">&nbsp;'.$recordset["Weight"].'</td>';
                                 echo '<td align="left">&nbsp;'.$recordset["SpecieCode"].' - '.$recordset["SpecieName"].'</td>';
-                                echo '<td align="center" width="50"><a href="./individualList.php?eff='.$recordset["Id"].'"><img src="images/fishIcon.png" height="25px" width="35px"/></a> &nbsp;</td>'
-                                    . '<td align="center" width="50"><a href="./actions/deleteHarvest.php?cod='.$recordset["Id"].'"><img src="images/delete.png" height="25px" width="25px" /></a></td>';
+                                if($_SESSION['userType']=='fisher') 
+                                    echo '<td align="center" width="50"><img src="images/delete_disabled.png" height="25px" width="25px" /></td>';
+                                else
+                                    echo '<td align="center" width="50"><a href="./actions/deleteHarvest.php?cod='.$recordset["Id"].'"><img src="images/delete.png" height="25px" width="25px" /></a></td>';
                             echo '<tr/>';
 
                             $lcor = !$lcor;
@@ -245,8 +255,8 @@ function clearSearch(){
         <tr>
             <td class="resultado" colspan="2">
             <?php
-		  if($volta>0){ 
-		    echo '<a href=?page='.$volta;
+		  if($previous>0){ 
+		    echo '<a href=?page='.$previous;
 			if($_GET['sEffortNum']<>'')
 			  echo '&sEffortNum='.str_replace(' ','+',$_GET['sEffortNum']);
 			if($_GET['sStrDate']<>'')
@@ -269,7 +279,7 @@ function clearSearch(){
                 <input name="page" id="page" type="text" class="form" id="page" value="<?php echo $page; ?>" style="text-align: center; height: 30px; width: 35px;" onkeypress="mascara(this,soNumeros)" size="1" maxlength="3"/>
           <?php 
 		  if($page<$pages) { 
-		    echo '<a href=?page='.$proxima;
+		    echo '<a href=?page='.$next;
 			if($_GET['sEffortNum']<>'')
 			  echo '&sEffortNum='.str_replace(' ','+',$_GET['sEffortNum']);
 			if($_GET['sStrDate']<>'')

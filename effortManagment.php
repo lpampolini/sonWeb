@@ -74,6 +74,26 @@ $resultMESH = $dbConnection->execSql($sqlMESH);
 $sqlHVSMTH = "SELECT * FROM HVSMTH";
 $resultHVSMTH = $dbConnection->execSql($sqlHVSMTH);
 
+// Select all the individuals inside specif harvest
+$sqlIndividuals = " SELECT i.*,e.EffortNumber,s.Name as SpecieName,u.Username FROM Individuals as i"
+                . " INNER JOIN Efforts as e"
+                . " ON e.Id = i.Effort"
+                . " INNER JOIN Species as s"
+                . " ON i.SPC = s.Id"
+                . " INNER JOIN Users as u";
+
+if($_GET["cod"])
+    $sqlIndividuals .= " WHERE i.Effort=".$_GET["cod"];
+
+if ($_SESSION['userType']=='fisher'){
+        $sqlIndividuals.= " and u.Id =".$_SESSION['userId'];
+}
+//echo $sqlIndividuals.'<br/>'; 
+$resultIndividuals = $dbConnection->execSql($sqlIndividuals);
+$numberIndividuals = mysql_num_rows($resultIndividuals);
+//echo $sqlIndividuals.'<br>';
+
+
 /*
  * Select most used species in harvests
  * 
@@ -92,7 +112,7 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
     <link rel="stylesheet" type="text/css" href="style.css" media="all" />
     <script type="text/javascript" src="calendar/dhtmlgoodies_calendar.js?random=20060118"></script>
     <link type="text/css" rel="stylesheet" href="calendar/dhtmlgoodies_calendar.css?random=20051112" media="screen"></link>
-    
+
 <script language="JavaScript">
     
     //function retrieveData(key,index) {
@@ -117,22 +137,18 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
         }
       }
       
-      //If there is support
-      if(ajax) {
+        //If there is support
+        if(ajax) {
 
             var listSpec = 'newSpecie'+index;
-             //Leave only the first option inside select
             
-            //document.effortForm.newSpecie0.options.length = 1;
+            //Leave only the first option inside select
             'document.effortForm.'+listSpec+'.options.length= 1';
 
             idOption = document.getElementById("optionsSpecies");
+            ajax.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
             ajax.open("POST", "./species.php", true);
-
-            ajax.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            alert(index);
-
             ajax.onreadystatechange = function() {
                    // Show message while loading
                    alert(ajax.readyState);
@@ -142,12 +158,12 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
                    // After loading
                    if(ajax.readyState == 4 ) {
                       if(ajax.responseXML) {
-                             processXML(ajax.responseXML);
-                             setTimeout(function() {}, 6000);
+                        processXML(ajax.responseXML);
+                        setTimeout(function() {}, 6000);
                       }
                       else {
-                              //In case it does not load
-                              idOption.innerHTML = "Error: Try refresh";
+                        //In case it does not load
+                        idOption.innerHTML = "Error: Try refresh";
                       }
                    }
             }
@@ -155,7 +171,7 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
             var params = "index="+index;
             //alert(params);
             ajax.send(params);
-      }
+        }
     }
 
     function processXML(obj){
@@ -169,35 +185,31 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
 
       // If there's any specie tag
       if(dataArray.length > 0) {
-             // Retrieve and process all the tags
-             for(var i = 0 ; i < dataArray.length ; i++) {
-                
-                    var item = dataArray[i];
-                    
-                    //Put XML tags inside fields
-                    var specieId = item.getElementsByTagName("specieId")[0].firstChild.nodeValue;
-                    var specieName = item.getElementsByTagName("specieName")[0].firstChild.nodeValue;
-                    var specieCode = item.getElementsByTagName("specieCode")[0].firstChild.nodeValue;
-                    //var index = item.getElementsByTagName("indexValue")[0].firstChild.nodeValue;
+        // Retrieve and process all the tags
+        for(var i = 0 ; i < dataArray.length ; i++) {
 
-                    //idOption.innerHTML = "Select Specie";
+            var item = dataArray[i];
 
-                    //Create new dynamic option 
-                    var newOption = document.createElement("option");
-                        //Set option id to options
-                        newOption.setAttribute("id", "optionsSpecies");
-                        //Set option's Id
-                        newOption.value = specieId;
-                        //Set option's text
-                        newOption.text  = specieCode+' - '+specieName;
+            //Put XML tags inside fields
+            var specieId = item.getElementsByTagName("specieId")[0].firstChild.nodeValue;
+            var specieName = item.getElementsByTagName("specieName")[0].firstChild.nodeValue;
+            var specieCode = item.getElementsByTagName("specieCode")[0].firstChild.nodeValue;
 
-                        // Add new option to select species
-                        element.add(newOption);
-            }
+            //Create new dynamic option 
+            var newOption = document.createElement("option");
+            //Set option id to options
+            newOption.setAttribute("id", "optionsSpecies");
+            //Set option's Id
+            newOption.value = specieId;
+            //Set option's text
+            newOption.text  = specieCode+' - '+specieName;
+            // Add new option to select species
+            element.add(newOption);
+        }
       }
       else {
-            //caso o XML volte vazio, printa a mensagem abaixo
-            idOption.innerHTML = "No Species";
+        //caso o XML volte vazio, printa a mensagem abaixo
+        idOption.innerHTML = "No Species";
       }	  
     }
     
@@ -326,6 +338,11 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
         }
         
     });
+    
+    // function to open a new individual window
+    function open_window(op, id) {
+        window.open('individualManagmentWindow.php?op='+op+'&cod='+id,'mywindow','menubar=0,resizable=1,width=1500,height=600,top=200,left=200');
+    }
     </script>
 
 <body>
@@ -368,15 +385,15 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
                         echo">"; 
                             echo "<option value=''> Select fisher </option>";
                             
-                            while($recordFisherman = mysql_fetch_assoc($resultFisherman)){
+                            while($recordRegions = mysql_fetch_assoc($resultFisherman)){
 
-                                echo "<option value='".$recordFisherman["Id"]."'";
+                                echo "<option value='".$recordRegions["Id"]."'";
 
-                                if($recordset["Fisherman"]==$recordFisherman["Id"]){
+                                if($recordset["Fisherman"]==$recordRegions["Id"]){
                                     echo "selected='selected'";
                                 }
 
-                                echo ">".$recordFisherman["Username"]."</option>";
+                                echo ">".$recordRegions["Username"]."</option>";
 
                             }
                          echo "</select>";
@@ -591,11 +608,9 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
                         </tr>
                         
                         <tr>
-                            
                             <td colspan="4">
                                 <img src="images/thinBar.jpg" height="2px" width="100%"><p></p>
                             </td>
-                        
                         </tr>
                     </table>
                     </div>
@@ -756,6 +771,101 @@ GROUP BY Specie ORDER BY CountSpecie DESC, Specie ASC
                     <input type="hidden" name="LATLONG" value="1010-1010">
                     
                     <!--<input type="hidden" id="numEfforts" name="numEfforts" value="ac">-->
+                    <div class="col_12">
+                    <table width="1470" border="0">
+                        <tr>
+                            <td width="1400" colspan="3">
+                                <img src="images/fishIcon.png" height="25px" width="30px" />
+                                <label class="tableTitle">Individual List</label>
+                            </td>
+                            <td width="20">
+                                <?php if($_SESSION['userType']==='fisher'){?>
+                                    <img id="addHarvestHidden" src="images/addIcon_disabled.png" height="31px" width="30px">
+                                <?php }else{ ?>
+                                    <a href="#"><img id="addIndividual" src="images/addIcon.png" height="31px" width="30px" onclick="open_window('add',<?php echo $_GET["cod"] ?>)"></a>    
+                                <?php } ?>
+                            </td>
+                        </tr>
+                            
+                        <tr>
+                            <td colspan="4">
+                                <img src="images/thinBar.jpg" height="2px" width="100%"><p></p>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td>
+                            <table width="1400" border="0" cellpadding="0" cellspacing="0">
+
+                                <tr height="25" bgcolor="#D8D8D8" class="tableTitle">
+
+                                    <td width="400"><div align="left">&nbsp;Specie</div></td>
+                                    <td width="400"><div align="left">&nbsp;Total Length</div></td>
+                                    <td width="400"><div align="left">&nbsp;Fork Length</div></td>
+                                    <td width="400"><div align="left">&nbsp;Scales</div></td>
+                                    <td width="90"><div align="center">&nbsp;Options</div></td>
+
+                                </tr> 
+                                <tr>
+                                    <td>
+
+                                        <?php
+
+                                        if ($numberIndividuals>0) {
+
+                                            while ($recordsetInd = mysql_fetch_assoc($resultIndividuals)){
+
+                                                if ($lcor) {
+                                                  $bg = "#F2F2F2";
+                                                } else {
+                                                  $bg = "#ffffff";
+                                                }
+
+                                                echo '<tr class="tableText" href="" height="40" bgcolor="'.$bg.'" onMouseOver="this.bgColor=\'#C4CDD6\'" onMouseOut="this.bgColor=\''.$bg.'\'">';
+                                                    echo '<td><a href="javascript:open_window(\'edt\','.$recordsetInd["Id"].')">&nbsp;'.$recordsetInd["SpecieName"].'</a></td>';
+                                                    echo '<td>&nbsp;'.$recordsetInd["LengthTotal"].'</td>';
+                                                    echo '<td align="left">&nbsp;'.$recordsetInd["LengthFork"].'</td>';
+                                                    echo '<td align="center">&nbsp;';
+                                                    
+                                                    if($recordset["Scales"] == 's')
+                                                        echo 'Yes';
+                                                    else
+                                                        echo 'No';
+                                                    echo '</td>';
+                                                    
+                                                    echo '<td align="center">';
+                                                    
+                                                    if($_SESSION['userType']==='fisher')
+                                                        echo '<img id="addHarvestHidden" src="images/delete_disabled.png" height="31px" width="30px">';
+                                                    else
+                                                        echo '<a href="./actions/deleteIndividual.php?cod='.$recordsetInd["Id"].'"><img src="images/delete.png" height="25px" width="25px" /></a>';
+                                                    
+                                                    echo '</td>';
+                                                echo '<tr/>';
+
+                                                $lcor = !$lcor;
+                                            }
+                                            echo '</table>';
+                                        } else {
+                                            echo '</table><br><br><br><div align="center"><font color="#678FC2" face="Tahoma, Arial, Helvetica, sans-serif" size="3">No register was found.</font></div><br><br><br>';
+                                        }
+
+                                        ?>
+                                    </td>
+                                </tr>
+                            </table>
+                            </td>
+                        </tr>    
+                    </table>
+                </div>
+                    
+                </table>
+                    
+                    <p></p>
+                    
+            
+            </td>
+        </tr>
                     
                 </form>
             </td>

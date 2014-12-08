@@ -7,8 +7,8 @@ $dbConnection = new connection();
 $dbConnection->newConnection();
 
 $sqlHarvestsSource = "SELECT * from HarvestsDan";
-$resHarvSrc = $dbConnection->execSql($sqlHarvestsSource);
-$nLinesSrc = mysql_num_rows($resHarvSrc);
+$resEffZoneSrc = $dbConnection->execSql($sqlHarvestsSource);
+$nLinesSrc = mysql_num_rows($resEffZoneSrc);
 
 /* Receive all the Harvests
 For each row
@@ -28,35 +28,35 @@ For each row
         - RHVSWT_KG
  */
 
-while($recordHarvSrc = mysql_fetch_assoc($resHarvSrc)){
+while($recordEffZoneSrc = mysql_fetch_assoc($resEffZoneSrc)){
     
     // Retrieve Effort key
-    $sqlEffKey = 'SELECT Id FROM Efforts WHERE EffortNumber ="'.$recordHarvSrc['EFFORT'].'"';
+    $sqlEffKey = 'SELECT Id FROM Efforts WHERE EffortNumber ="'.$recordEffZoneSrc['EFFORT'].'"';
     $resEffKey = $dbConnection->execSql($sqlEffKey);
     $recEffKey = mysql_fetch_assoc($resEffKey);
     $nEffkey = mysql_num_rows($resEffKey);
     echo $sqlEffKey.'<br/><br/>';
     
     // Specie key
-    $sqlSpecKey = 'SELECT Id FROM Species WHERE Code ="'.$recordHarvSrc['SPC'].'"';
+    $sqlSpecKey = 'SELECT Id FROM Species WHERE Code ="'.$recordEffZoneSrc['SPC'].'"';
     $resSpecKey = $dbConnection->execSql($sqlSpecKey);
     $recSpecKey = mysql_fetch_assoc($resSpecKey);
     //$n = mysql_num_rows($resSpecKey);
     //echo $sqlSpecKey.'<br/><br/>';
     
     // Increment method code -> code pk (to fix original database)
-    $HarvMethod = ((int)$recordHarvSrc['HVSMTH'])+1;
+    $HarvMethod = ((int)$recordEffZoneSrc['HVSMTH'])+1;
     
     // Unit: 1 -> Kg; 1 -> punds
-    if($recordHarvSrc['WUT']==1)
+    if($recordEffZoneSrc['WUT']==1)
         $unit = 'k';
-    elseif($recordHarvSrc['WUT']==2)
+    elseif($recordEffZoneSrc['WUT']==2)
         $unit = 'p';
     
     if($nEffkey>0){
         $newRow = 'INSERT INTO Harvests (Id,HarvestCode,Effort,Specie,HVSMTH,DIS,Form,Weight,Unit,RHVSWT_KG) values ('
-                .$recordHarvSrc['Id'].', "'.$recordHarvSrc['HARVEST'].'",'.$recEffKey['Id'].','.$recSpecKey['Id'].','.$HarvMethod.','.$recordHarvSrc['DIS'].','.$recordHarvSrc['WFT'].','
-                .''.$recordHarvSrc['HVSWT9'].',"'.$unit.'",'.$recordHarvSrc['RHVSWT_KG'].');';
+                .$recordEffZoneSrc['Id'].', "'.$recordEffZoneSrc['HARVEST'].'",'.$recEffKey['Id'].','.$recSpecKey['Id'].','.$HarvMethod.','.$recordEffZoneSrc['DIS'].','.$recordEffZoneSrc['WFT'].','
+                .''.$recordEffZoneSrc['HVSWT9'].',"'.$unit.'",'.$recordEffZoneSrc['RHVSWT_KG'].');';
         //$resRow = $dbConnection->execSql($newRow);
         echo $newRow.'<br/><br/>';
     }

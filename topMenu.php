@@ -57,44 +57,51 @@ $url = explode('/', $_SERVER["REQUEST_URI"]);
             <a id="individuala" href="individualList.php">Individual</a>
         </li>
 
-        <li>&nbsp;:&nbsp;</li>
+        <?php if($_SESSION['userType']!=='fisher'){ ?>
         
-        <?php if($_SESSION['userType']=='admin'){ ?> 
-        
-        <li id="usersli" <?php if (strpos($url[2], 'user') !== false) echo 'class="current"'; ?>>
-            <a id="usersa" href="userList.php">Users</a>
-        </li>
+            <li>&nbsp;:&nbsp;</li> 
+
+            <li id="usersli" <?php if (strpos($url[2], 'user') !== false) echo 'class="current"'; ?>>
+                <a id="usersa" href="userList.php">Users</a>
+            </li>
+
+            <li id="soecieli" <?php if (strpos($url[2], 'specie') !== false) echo 'class="current"'; ?>>
+                <a id="soeciea" href="specieList.php">Species</a>
+            </li>
+
+            <li id="formli" <?php if (strpos($url[2], 'form') !== false) echo 'class="current"'; ?>>
+                <a id="forma" href="formList.php">Form</a>
+            </li>
+
+            <li id="netli" <?php if (strpos($url[2], 'net') !== false) echo 'class="current"'; ?>>
+                <a id="neta" href="netList.php">Net</a>
+            </li>
+
+            <li id="boatli" <?php if (strpos($url[2], 'boat') !== false) echo 'class="current"'; ?>>
+                <a id="boata" href="boatList.php">Boat</a>
+            </li>
+
+            <li id="durationli" <?php if (strpos($url[2], 'duration') !== false) echo 'class="current"'; ?>>
+                <a id="durationa" href="durationList.php">Duration</a>
+            </li>
+
+            <li id="grhtmli" <?php if (strpos($url[2], 'grhtm') !== false) echo 'class="current"'; ?>>
+                <a id="grhtma" href="grhtmList.php">GRHTM</a>
+            </li>
+
+            <li id="meshli" <?php if (strpos($url[2], 'mesh') !== false) echo 'class="current"'; ?>>
+                <a id="mesha" href="meshList.php">MESH</a>
+            </li>
+            
+            <li id="meshli" <?php if (strpos($url[2], 'graphReport') !== false) echo 'class="current"'; ?>>
+                <a id="mesha" href="graphReport.php">Graph Report</a>
+            </li>
+            
+<!--            <li id="meshli" <?php if (strpos($url[2], 'report2') !== false) echo 'class="current"'; ?>>
+                <a id="mesha" href="secondReport.php">Report 2</a>
+            </li>-->
         
         <?php } ?>
-        
-        <li id="soecieli" <?php if (strpos($url[2], 'specie') !== false) echo 'class="current"'; ?>>
-            <a id="soeciea" href="specieList.php">Species</a>
-        </li>
-        
-        <li id="formli" <?php if (strpos($url[2], 'form') !== false) echo 'class="current"'; ?>>
-            <a id="forma" href="formList.php">Form</a>
-        </li>
-        
-        <li id="netli" <?php if (strpos($url[2], 'net') !== false) echo 'class="current"'; ?>>
-            <a id="neta" href="netList.php">Net</a>
-        </li>
-        
-        <li id="boatli" <?php if (strpos($url[2], 'boat') !== false) echo 'class="current"'; ?>>
-            <a id="boata" href="boatList.php">Boat</a>
-        </li>
-        
-        <li id="durationli" <?php if (strpos($url[2], 'duration') !== false) echo 'class="current"'; ?>>
-            <a id="durationa" href="durationList.php">Duration</a>
-        </li>
-        
-        <li id="grhtmli" <?php if (strpos($url[2], 'grhtm') !== false) echo 'class="current"'; ?>>
-            <a id="grhtma" href="grhtmList.php">GRHTM</a>
-        </li>
-        
-        <li id="meshli" <?php if (strpos($url[2], 'mesh') !== false) echo 'class="current"'; ?>>
-            <a id="mesha" href="meshList.php">MESH</a>
-        </li>
-        
 <!--        <li><a href=""><i class="icon-inbox"></i> Parameters</a>
             
             <ul>

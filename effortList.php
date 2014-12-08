@@ -5,8 +5,6 @@ $dbConnection = new connection();
 $dbConnection->newConnection();
 
 session_start();
-echo 'userType = '.$_SESSION['userType'].'<br/>';
-echo 'userID = '.$_SESSION['userId'];
 
 // Pags module
 if(isset($_GET['limitOfRows']))
@@ -196,8 +194,8 @@ function clearSearch(){
     <?php
     // Set the number of pages by dividing the number of total records by the number of records per page (25/50/70)
     $pages = $nlinhas[0] / $pag_views;
-    $volta   = $page-1;	  
-    $proxima = $page+1;
+    $previous   = $page-1;	  
+    $next = $page+1;
     ?>
     <table border="0" width="1900" cellpadding="2px">
 
@@ -219,7 +217,9 @@ function clearSearch(){
                 <p></p>
             </td>
             <td>
-                <button style="float: right; margin-bottom: 12px;" type="button" class="normalButton" onclick="location.href='effortManagment.php?op=add'">Add new effort</button>
+                <?php if($_SESSION['userType']!=='fisher'){ ?>
+                    <button style="float: right; margin-bottom: 12px;" type="button" class="normalButton" onclick="location.href='effortManagment.php?op=add'">Add new effort</button>
+                <?php } ?>
             </td>
         </tr>
 
@@ -236,19 +236,19 @@ function clearSearch(){
                     echo '>';
                         echo "<option value=''> Select fisher </option>";
 
-                        while($recordFisherman = mysql_fetch_assoc($resultFisherman)){
+                        while($recordRegions = mysql_fetch_assoc($resultFisherman)){
 
-                            echo "<option value='".$recordFisherman["Id"]."'";
+                            echo "<option value='".$recordRegions["Id"]."'";
 
-                            if($_GET['sFisher']==$recordFisherman["Id"]){
+                            if($_GET['sFisher']==$recordRegions["Id"]){
                                 echo "selected='selected'";
                             }
                             
-                            if($_SESSION['userId']==$recordFisherman["Id"] && $_SESSION['userType']=='fisher' ){
+                            if($_SESSION['userId']==$recordRegions["Id"] && $_SESSION['userType']=='fisher' ){
                                 echo "selected='selected'";
                             }
 
-                            echo ">".$recordFisherman["Username"]."</option>";
+                            echo ">".$recordRegions["Username"]."</option>";
 
                         }
                     ?>
@@ -304,7 +304,7 @@ function clearSearch(){
                       <td width="00"><div align="left">&nbsp;Fisher</div></td>
                       <td width="250"><div align="left">&nbsp;Date</div></td>
                       <td width="250"><div align="left">&nbsp;Duration</div></td>
-                      <td width="100" colspan="2"><div align="left">&nbsp;Options</div></td>
+                      <td width="100" colspan="3"><div align="left">&nbsp;Options</div></td>
                     </tr>
 
                     <?php
@@ -325,6 +325,7 @@ function clearSearch(){
                                 echo '<td align="center">&nbsp;'.$recordset["EDate"].'</td>';
                                 echo '<td align="center">&nbsp;'.$recordset["effortDuration"].'&nbsp;hs </td>';
                                 echo '<td align="center" width="50"><a href="./harvestList.php?sEffortNum='.$recordset["Id"].'"><img src="images/harvestIcon.png" height="25px" width="30px" /></a> &nbsp;</td>';
+                                echo '<td align="center" width="50"><a href="./individualList.php?eff='.$recordset["Id"].'"><img src="images/fishIcon.png" height="25px" width="35px"/></a> &nbsp;</td>';
                                     if($_SESSION['userType']=='fisher') 
                                         echo '<td align="center" width="50"><img src="images/delete_disabled.png" height="25px" width="25px" /></td>';
                                     else    
@@ -377,8 +378,8 @@ function clearSearch(){
         <tr>
             <td class="resultado" colspan="2">
             <?php
-		  if($volta>0){ 
-		    echo '<a href=?page='.$volta;
+		  if($previous>0){ 
+		    echo '<a href=?page='.$previous;
 			if($_GET['sFisher']<>'')
 			  echo '&sFisher='.str_replace(' ','+',$_GET['sFisher']);
 			if($_GET['sStrDate']<>'')
@@ -403,7 +404,7 @@ function clearSearch(){
                 <input name="page" id="page" type="text" class="form" id="page" value="<?php echo $page; ?>" style="text-align: center; height: 30px; width: 35px;" onkeypress="mascara(this,soNumeros)" size="1" maxlength="3"/>
           <?php 
 		  if($page<$pages) { 
-		    echo '<a href=?page='.$proxima;
+		    echo '<a href=?page='.$next;
 			if($_GET['sFisher']<>'')
 			  echo '&sFisher='.str_replace(' ','+',$_GET['sFisher']);
 			if($_GET['sStrDate']<>'')

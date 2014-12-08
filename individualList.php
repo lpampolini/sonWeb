@@ -1,21 +1,12 @@
 <?php
 
 include_once 'database/connection.php';
-
+session_start();
 $dbConnection = new connection();
 $dbConnection->newConnection();
 
-$sqlList = " SELECT i.*,h.Effort,e.EffortNumber,s.Name as SpecieName FROM Individuals as i"
-         . " INNER JOIN Harvests as h"
-         . " ON i.Harvest = h.Id"
-         . " INNER JOIN Efforts as e"
-         . " ON e.Id = h.Effort"
-         . " INNER JOIN Species as s"
-         . " ON i.Specie = s.Id";
-         if(isset($_GET["eff"]) and $_GET["eff"]!=''){
-            $sqlList .= ' WHERE Harvest='.$_GET["eff"];
-         }
-//echo $sqlList;
+
+
 $numberLines = array();
 $exec = $dbConnection->execSql($sqlList);
 $numberLines[0] = mysql_num_rows($exec);
